@@ -1,6 +1,6 @@
 import streamlit as st
 from youtube_utils import fetch_all_comments
-from openai_utils import analyze_comments
+from huggingface_utils import analyze_comments
 from tts_utils import generate_voice_feedback
 
 st.set_page_config(page_title="Perf Coach")
