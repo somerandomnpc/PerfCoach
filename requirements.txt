@@ -1,4 +1,4 @@
 streamlit
-google-api-python-client
 requests
+google-api-python-client
 elevenlabs
