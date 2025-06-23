@@ -18,3 +18,23 @@ def fetch_timestamped_comments(url):
             ts = timedelta(minutes=m, seconds=s).total_seconds()
             events.append({"timestamp": ts, "text": text})
     return events
+
+from googleapiclient.errors import HttpError
+
+# Access the API key from Streamlit secrets
+YOUTUBE_API_KEY = st.secrets.get("GOOGLE_API_KEY")
+
+def extract_video_id(url: str) -> str:
+    """
+    Extracts the video ID from a full YouTube URL.
+    Returns None if no valid ID found.
+    """
+    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
+    return match.group(1) if match else None
+
+def fetch_timestamped_comments(url: str):
+    """
+    Fetches YouTube comments that include timestamps.
+    Returns a list of comment dicts with timestamp (float) and text.
+    """
+    video_id = extract_
