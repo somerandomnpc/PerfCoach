@@ -6,7 +6,6 @@ from voice_utils import generate_voice_feedback
 st.set_page_config(page_title="Perf Coach")
 st.title("🎤 Perf Coach")
 
-# 📥 User inputs YouTube video URL
 url = st.text_input("Paste a YouTube Video URL")
 
 if st.button("Analyze"):
@@ -21,7 +20,7 @@ if st.button("Analyze"):
         else:
             st.success(f"Fetched {len(events)} comments.")
             
-            # 🧠 AI Feedback from Hugging Face
+            # 🧠 Get feedback
             summary, suggestions = analyze_comments(events)
 
             st.subheader("📈 Text Feedback")
@@ -30,12 +29,16 @@ if st.button("Analyze"):
             for s in suggestions:
                 st.write(f"- {s}")
 
-            # 🔊 Voice Feedback using ElevenLabs
+            # 🔊 Voice Feedback Button (generate & store in session_state)
             st.subheader("🔊 Voice Feedback")
             if st.button("▶️ Play Voice Summary"):
-                with st.spinner("Generating voice summary..."):
+                with st.spinner("Generating voice feedback…"):
                     audio = generate_voice_feedback(summary)
                     if audio:
-                        st.audio(audio, format="audio/mp3")
+                        st.session_state["voice_feedback"] = audio
                     else:
                         st.error("Voice generation failed.")
+
+# Always try to play audio if it exists in session
+if "voice_feedback" in st.session_state:
+    st.audio(st.session_state["voice_feedback"], format="audio/mp3")
