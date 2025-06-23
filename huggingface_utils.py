@@ -1,28 +1,41 @@
 import requests
 import streamlit as st
 
-HUGGINGFACE_API_KEY = st.secrets["HUGGINGFACE_API_KEY"]
+# Hugging Face API setup
+HUGGINGFACE_API_KEY = st.secrets.get("HUGGINGFACE_API_KEY")
 API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
-headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
+HEADERS = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
+
 
 def analyze_comments(events):
+    """
+    Summarizes YouTube comments using Hugging Face summarization model.
+    Returns: summary (str), suggestions (list of str)
+    """
     comments_text = "\n".join(e["text"] for e in events[:50])
     payload = {"inputs": comments_text}
 
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
+        response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=30)
         result = response.json()
 
         if "error" in result:
-            return "⚠️ Hugging Face API error: " + result["error"], []
+            st.error("🤖 Hugging Face API error:")
+            st.code(result["error"])
+            return "No summary available.", []
 
         summary = result[0]["summary_text"]
+
+        # Generic suggestions (static for now)
         suggestions = [
-            "Include more visual or vocal variations during repetitive segments.",
-            "Engage the audience directly if comment volume is low.",
-            "Use emotes or reactions where fans tend to spike in comments."
+            "Add more variety in visual or vocal delivery.",
+            "React to moments when fans get more active.",
+            "Try creating a highlight moment in the middle section."
         ]
+
         return summary, suggestions
 
     except Exception as e:
-        return f"⚠️ Request failed: {e}", []
+        st.error("⚠️ Hugging Face API request failed.")
+        st.exception(e)
+        return "No summary generated.", []
