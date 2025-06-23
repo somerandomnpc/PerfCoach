@@ -1,5 +1,6 @@
 import streamlit as st
 from youtube_utils import fetch_timestamped_comments
+from youtube_utils import fetch_all_comments
 from openai_utils import analyze_comments
 from tts_utils import generate_voice_feedback
 
@@ -12,7 +13,7 @@ if st.button("Analyze"):
         st.error("Please enter a valid YouTube URL.")
     else:
         st.info("Fetching comments…")
-        events = fetch_timestamped_comments(url)
+        events = fetch_all_comments(url)
         if not events:
             st.error("No timestamped comments found.")
         else:
