@@ -1,19 +1,21 @@
-from elevenlabs import generate, set_api_key
 import streamlit as st
+from elevenlabs.client import ElevenLabs
+from io import BytesIO
 
-def generate_voice_feedback(text: str, voice: str = "Bella") -> bytes:
+def generate_voice_feedback(text: str, voice_id: str = "EXAVITQu4vr4xnSDxMaL") -> bytes:
     """
-    Generate voice audio using ElevenLabs for a given text.
-    Returns MP3 bytes, or None if something fails.
+    Generate spoken audio from ElevenLabs and return as MP3 bytes.
+    Uses default voice_id unless overridden.
     """
     try:
-        set_api_key(st.secrets["ELEVENLABS_API_KEY"])
-        audio = generate(
-            text=text,
-            voice=voice,
-            model="eleven_monolingual_v1"
+        client = ElevenLabs(api_key=st.secrets["ELEVENLABS_API_KEY"])
+        audio = client.text_to_speech.convert(
+            voice_id=voice_id,
+            model_id="eleven_monolingual_v1",
+            text=text
         )
-        return audio
+        return BytesIO(audio).read()
+
     except Exception as e:
-        st.warning(f"Voice feedback failed: {e}")
-        return None
+        st.error(f"Voice generation failed: {e}")
+        return
