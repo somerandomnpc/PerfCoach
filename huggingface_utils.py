@@ -2,7 +2,7 @@ import requests
 import streamlit as st
 
 HUGGINGFACE_API_KEY = st.secrets.get("HUGGINGFACE_API_KEY")
-API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+API_URL = "https://api-inference.huggingface.co/models/mrm8488/t5-base-finetuned-common_gen"
 HEADERS = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
 
 
