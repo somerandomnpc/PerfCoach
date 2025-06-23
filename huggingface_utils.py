@@ -1,46 +1,45 @@
 import requests
 import streamlit as st
 
-# Hugging Face config
+# Hugging Face Inference API
 HUGGINGFACE_API_KEY = st.secrets.get("HUGGINGFACE_API_KEY")
-API_URL = "https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6"  # Faster model
+API_URL = "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct"
 HEADERS = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
 
 
 def analyze_comments(events):
     """
-    Summarizes YouTube comments using Hugging Face's distilBART model.
-    Returns: summary string, suggestions list.
+    Analyzes comments and returns:
+    - summary: what the audience felt
+    - coaching_comment: dynamic, natural coaching feedback
     """
-    # Limit input text to reduce size
     comments_text = "\n".join(e["text"] for e in events[:20])
-    payload = {"inputs": comments_text}
 
-    with st.spinner("Generating feedback… please wait up to 60 seconds."):
-        try:
-            response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=60)
+    prompt = (
+        "You're a virtual performance coach watching a concert. Based on these comments:\n"
+        f"{comments_text}\n\n"
+        "Summarize the audience’s reaction, then give performance advice in a helpful, coach-like tone. Be specific and encouraging."
+    )
+
+    try:
+        with st.spinner("Generating feedback…"):
+            response = requests.post(
+                API_URL,
+                headers=HEADERS,
+                json={"inputs": prompt},
+                timeout=60
+            )
             result = response.json()
 
             if "error" in result:
-                st.error("🤖 Hugging Face API error:")
-                st.code(result["error"])
-                return "No summary available.", []
+                return "Audience summary not available.", "Coach feedback unavailable."
 
-            summary = result[0]["summary_text"]
+            text = result[0]["generated_text"]
+            summary, _, coaching_comment = text.partition("\n\n")
 
-            # Generic suggestions for now
-            suggestions = [
-                "Use stronger build-ups before key moments.",
-                "Add expressive visuals to increase crowd engagement.",
-                "Introduce variation between chorus and verse patterns."
-            ]
-            return summary, suggestions
+            return summary.strip(), coaching_comment.strip()
 
-        except requests.exceptions.ReadTimeout:
-            st.error("⚠️ Request timed out. Try again with fewer comments or retry later.")
-            return "Timeout error", []
-
-        except Exception as e:
-            st.error("🚫 Unexpected error during feedback generation.")
-            st.exception(e)
-            return "Error", []
+    except Exception as e:
+        st.error("Hugging Face generation failed.")
+        st.exception(e)
+        return "Error summarizing.", "Error generating coaching comment."
