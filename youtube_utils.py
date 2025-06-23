@@ -37,4 +37,4 @@ def fetch_timestamped_comments(url: str):
     Fetches YouTube comments that include timestamps.
     Returns a list of comment dicts with timestamp (float) and text.
     """
-    video_id = extract_
+    video_id = extract_video_id(url)
