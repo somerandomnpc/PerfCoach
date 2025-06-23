@@ -6,30 +6,36 @@ from voice_utils import generate_voice_feedback
 st.set_page_config(page_title="Perf Coach")
 st.title("🎤 Perf Coach")
 
-url = st.text_input("YouTube Video URL")
+# 📥 User inputs YouTube video URL
+url = st.text_input("Paste a YouTube Video URL")
+
 if st.button("Analyze"):
     if not url.strip():
-        st.error("Please enter a valid YouTube URL.")
+        st.error("Please enter a valid YouTube link.")
     else:
-        st.info("Fetching comments…")
+        st.info("Fetching comments from YouTube…")
         events = fetch_all_comments(url)
+
         if not events:
-            st.error("No timestamped comments found.")
+            st.error("No comments were fetched from this video.")
         else:
-            st.success(f"Found {len(events)} timestamped comments.")
-
-            timestamps = [e["timestamp"] for e in events]
-            counts = {ts: timestamps.count(ts) for ts in timestamps}
-            st.line_chart(counts)
-
-            st.info("Generating feedback with ChatGPT…")
+            st.success(f"Fetched {len(events)} comments.")
+            
+            # 🧠 AI Feedback from Hugging Face
             summary, suggestions = analyze_comments(events)
 
             st.subheader("📈 Text Feedback")
             st.markdown(summary)
+            st.markdown("**Suggestions for Performer:**")
             for s in suggestions:
                 st.write(f"- {s}")
 
-            st.info("Generating voice summary…")
-            audio_bytes = generate_voice_feedback(summary)
-            st.audio(audio_bytes)
+            # 🔊 Voice Feedback using ElevenLabs
+            st.subheader("🔊 Voice Feedback")
+            if st.button("▶️ Play Voice Summary"):
+                with st.spinner("Generating voice summary..."):
+                    audio = generate_voice_feedback(summary)
+                    if audio:
+                        st.audio(audio, format="audio/mp3")
+                    else:
+                        st.error("Voice generation failed.")
